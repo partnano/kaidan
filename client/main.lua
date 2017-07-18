@@ -43,18 +43,6 @@ function love.update (dt)
         data, msg = udp:receive()
 
         if data then
-            -- ent, cmd, params = data:match("^(%S*) (%S*) (.*)$")
-            -- if cmd == 'at' then
-            --     local x, y = params:match("^(%-?[%d.e]*) (%-?[%d.e]*)$")
-                
-            --     assert (x and y)
-            --     x, y = tonumber(x), tonumber(y)
-
-            --     world[ent] = {x = x, y = y}
-            -- else
-            --     print("Unknown command: ", cmd)
-            -- end
-
             rec_data = packer.to_table(data)
             if rec_data.cmd == 'at' then
                 -- TODO: check if values actually exist
