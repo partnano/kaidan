@@ -12,6 +12,7 @@ local elapsed_time = nil
 local input = {
     id = nil,
     serial = 0,
+    time = 0,
 
     selected = {},
     right_click = {
@@ -53,6 +54,7 @@ function love.mousepressed (x, y, button)
             x = x,
             y = y
         }
+        input.time = elapsed_time
 
         send_input = true
     end
@@ -61,7 +63,7 @@ end
 function love.update (dt)
     t = t + dt
 
-    if start_time then elapsed_time = os.clock() - start_time end
+    if start_time then elapsed_time = socket.gettime() - start_time end
 
     if t > updaterate then
         if send_input and input.id then
@@ -75,19 +77,18 @@ function love.update (dt)
         data, msg = udp:receive()
 
         if data then
-            if data == 'auth' then
-                start_time = os.clock()
+            rec_data = packer.to_table(data)
+            
+            if rec_data.cmd == 'auth' then
+                start_time = socket.gettime()
                 elapsed_time = 0
+                input.id = tonumber(rec_data.id)
 
                 print ("authenticated, start time: ", start_time)    
-                
-                goto cont
-            end
-
-            rec_data = packer.to_table(data)
-
-            if rec_data.cmd == 'ack' then
+            
+            elseif rec_data.cmd == 'ack' then
                 send_input = false
+            
             elseif rec_data.cmd == 'input' then
                 -- TODO: check if values actually exist
 

@@ -48,40 +48,49 @@ while running do
     port_or_nil and msg_or_ip ~= 'timeout' then
 
         -- check if player already connected
-        if session[msg_or_ip] then goto cont end
-
+        if session[msg_or_ip] then 
+            goto cont 
+        end
+        
         session[msg_or_ip] = true;
 
         local new_player = {ip = msg_or_ip, port = port_or_nil}
-
         players[player_index] = new_player
-        player_index = player_index +1
 
         -- TODO: start as soon as enough players connected
         -- for now this is only for a single client ... which is rather useless
-        start_time = os.clock()
+        start_time = socket.gettime()
         elapsed_time = 0
 
-        udp:sendto('auth', new_player.ip, new_player.port)
+        local _msg = packer.to_string({cmd = 'auth', id = player_index})
+
+        udp:sendto(_msg, new_player.ip, new_player.port)
+        print("Sent auth packet to ", new_player.ip, new_player.port)
+        
+        player_index = player_index +1
 
         goto cont
     end
 
     if data then
         rec_data = packer.to_table(data)
+        
+        packer.print_table(rec_data)
 
-        if rec_data.right_click.active then
+        if packer.to_bool(rec_data.right_click.active) then
             -- TODO: stub
+            print ("right click packet")
+            
+            local answer = packer.to_string({cmd = 'ack'})
+            udp:sendto(answer, msg_or_ip, port_or_nil)
         end
 
-        if rec_data.spawn_unit.active then
+        if packer.to_bool(rec_data.spawn_unit.active) then
             -- TODO: stub
-        end
+            print ("spawn unit packet")
 
-        if rec_data == 'quit' then
-            running = false
-        else
-            print('Unrecognized command: ', cmd)
+            local answer = packer.to_string({cmd = 'ack'})
+            udp:sendto(answer, msg_or_ip, port_or_nil)
         end
     
     elseif msg_or_ip ~= 'timeout' then
