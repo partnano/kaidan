@@ -3,8 +3,30 @@ local packer = require 'libs.packer'
 
 local address, port = 'localhost', 11111
 
-local entity
+local entities = {}
 local updaterate = 0.1
+
+local start_time = nil
+local elapsed_time = nil
+
+local input = {
+    id = nil,
+    serial = 0,
+
+    selected = {},
+    right_click = {
+        active = false,
+        x = -1,
+        y = -1
+    },
+    spawn_unit = {
+        active = false,
+        x = -1,
+        y = -1
+    }
+}
+
+local send_input = false
 
 local world = {}
 local t
@@ -15,26 +37,36 @@ function love.load ()
     udp = socket.udp()
     udp:settimeout(0)
     udp:setpeername(address, port)
-    
-    math.randomseed(os.time())
-    entity = math.random(99999)
 
-    local msg = {ent = entity, cmd = 'at', x = 320, y = 240}
-    udp:send(packer.to_string(msg))
+    udp:send("auth")
+end
+
+function love.mousepressed (x, y, button)
+    local x, y
+    
+    if love.mouse.isDown(2) then
+        x, y = love.mouse.getPosition()
+        
+        input.serial = input.serial +1
+        input.right_click = {
+            active = true,
+            x = x,
+            y = y
+        }
+
+        send_input = true
+    end
 end
 
 function love.update (dt)
     t = t + dt
 
-    if t > updaterate then
-        local x, y = 0, 0
-        if love.keyboard.isDown('up')    then y=y-(20*t) end
-		if love.keyboard.isDown('down')  then y=y+(20*t) end
-		if love.keyboard.isDown('left')  then x=x-(20*t) end
-		if love.keyboard.isDown('right') then x=x+(20*t) end
+    if start_time then elapsed_time = os.clock() - start_time end
 
-        local msg = {ent = entity, cmd = 'move', x = x, y = y}
-        udp:send(packer.to_string(msg))
+    if t > updaterate then
+        if send_input and input.id then
+            udp:send(packer.to_string(input))
+        end
 
         t = t - updaterate
     end
@@ -43,11 +75,23 @@ function love.update (dt)
         data, msg = udp:receive()
 
         if data then
+            if data == 'auth' then
+                start_time = os.clock()
+                elapsed_time = 0
+
+                print ("authenticated, start time: ", start_time)    
+                
+                goto cont
+            end
+
             rec_data = packer.to_table(data)
-            if rec_data.cmd == 'at' then
+
+            if rec_data.cmd == 'ack' then
+                send_input = false
+            elseif rec_data.cmd == 'input' then
                 -- TODO: check if values actually exist
 
-                world[rec_data.ent] = {x = tonumber(rec_data.x), y = tonumber(rec_data.y)}
+                exec_input(rec_data.input)
             else
                 print("Unknown command: ", data.cmd)
             end
@@ -55,15 +99,23 @@ function love.update (dt)
         elseif msg ~= 'timeout' then
             error("Network error: " .. tostring(msg))
         end
+
+        ::cont::
     until not data
 end
 
-function love.draw () 
-    local counter = 0;
-	for k, v in pairs(world) do
-		love.graphics.print(k, v.x, v.y)
-        counter = counter +1
-	end
+local function exec_input(srv_input)
+    if srv_input.right_click.active then
+        print("right click at ", srv_input.right_click.x, srv_input.right_click.y)
+        -- TODO: stub
+    end
 
-    love.graphics.print (counter, 10, 10)
+    if srv_input.spawn_unit.active then
+        print("spawning unit at ", srv_input.right_click.x, srv_input.right_click.y)
+        -- TODO: stub
+    end
+end
+
+function love.draw () 
+    -- TODO: stub
 end

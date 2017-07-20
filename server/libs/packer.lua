@@ -1,12 +1,12 @@
 local packer = {}
 
-local function print_table (t, ind)
+function packer.print_table (t, ind)
     local ind = ind or ""
 
     for k, v in pairs(t) do
         print(ind .. k, v)
         if(type(v) == 'table') then
-            print_table(v, ind.."\t")
+            packer.print_table(v, ind.."\t")
         end
     end
 end
@@ -34,9 +34,24 @@ end
 function packer.to_table (str) 
     local output = {}
 
-    for pair in str:gmatch("[%a%d]*:%b()") do
-        local key = pair:match("^[%a%d]*")
-        local inner_table = pair:match(":%([%(%)%.%-%a%d%s:;]*%)")
+    -- matches recursive tables in strings ( k:(..) )
+    local inner_table_pair_match = "[%a%d]*:%b()"
+
+    -- matches the actual inner table ( (..) ) (: & () need to be cut)
+    local inner_table_value_match = ":%([%(%)%.%-%a%d%s:;]*%)"
+
+    -- matches (leftover) pairs ( k:v )
+    local pair_match = "[%a%d]*:[%a%d%s%.%-]*"
+
+    -- matches key of a pair
+    local key_match = "^[%a%d]*"
+
+    -- matches value of a pair (: needs to be cut)
+    local value_match = ":[%.%-%a%d%s]*"
+
+    for pair in str:gmatch(inner_table_pair_match) do
+        local key = pair:match(key_match)
+        local inner_table = pair:match(inner_table_value_match)
 
         if #inner_table > 2 then inner_table = inner_table:sub(3, -2)
         else                     inner_table = ""
@@ -46,15 +61,15 @@ function packer.to_table (str)
         output[key] = packer.to_table(inner_table)
     end
 
-    str = str:gsub("[%a%d]*:%b()", "")
+    str = str:gsub(inner_table_pair_match, "")
 
-    for pair in str:gmatch("[%a%d%s:%.%-]*") do
+    for pair in str:gmatch(pair_match) do
         if pair == "" then
             goto cont
         end
 
-        local k = pair:match("[%a%d]*")
-        local v = pair:match(":[%.%-%a%d%s]*")
+        local k = pair:match(key_match)
+        local v = pair:match(value_match)
 
         if #v > 1 then v = v:sub(2) 
         else           v = ""
