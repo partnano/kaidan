@@ -69,7 +69,7 @@ while running do
             -- TODO: stub
             print ("-move- packet")
             
-            local answer = packer.to_string({cmd = 'ack'})
+            local answer = packer.to_string({cmd = 'ack', serial = rec_data.serial})
             udp:sendto(answer, ip, port)
         end
     

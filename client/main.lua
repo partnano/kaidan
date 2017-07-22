@@ -14,10 +14,7 @@ local elapsed_time = nil
 local client_id = nil
 local input_serial_counter = 0
 
--- TODO: change to array to be sent (and remove acknowledged inputs)
-local input = {}
-
-local send_input = false
+local inputs_to_send = {}
 
 local world = {}
 local t
@@ -40,25 +37,34 @@ function love.mousepressed (x, y, button)
         
         input = InputStruct:new()
 
-        input.serial = input_serial_counter +1
+        input.serial = input_serial_counter
         input.cmd = 'move'
         input.pos = {x = x, y = y}
 
         input.send_time = elapsed_time
 
-        send_input = true
+        table.insert(inputs_to_send, input)
+
+        --finish up
+        input_serial_counter = input_serial_counter +1
     end
 end
 
 function love.update (dt)
+    -- TODO: change updaterate to sockettime
     t = t + dt
 
     if start_time then elapsed_time = socket.gettime() - start_time end
 
+    -- send stuff
     if t > updaterate then
         -- is send_input AND client_id really needed here?
-        if send_input and client_id then
-            udp:send(packer.to_string(input))
+        if client_id and #inputs_to_send > 0 then
+            for _, input in ipairs(inputs_to_send) do
+            
+                udp:send(packer.to_string(input))
+            
+            end
         end
 
         t = t - updaterate
@@ -78,7 +84,14 @@ function love.update (dt)
                 print ("authenticated, start time: ", start_time)    
             
             elseif rec_data.cmd == 'ack' then
-                send_input = false
+                -- TODO: delete acknowledged input
+
+                for i, input in ipairs(inputs_to_send) do
+                    if input.serial == tonumber(rec_data.serial) then
+                        table.remove(inputs_to_send, i)
+                        break
+                    end
+                end
             
             elseif rec_data.cmd == 'action' then
                 -- TODO: check if values actually exist
