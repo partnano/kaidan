@@ -1,6 +1,8 @@
 local socket = require 'socket'
 local udp = socket.udp()
 
+local InputStruct = require 'libs.structs.input_struct'
+
 local packer = require 'libs.packer'
 
 udp:settimeout(0)
@@ -10,7 +12,7 @@ local session = {}
 local players = {}
 
 local world = {}
-local data, msg_or_ip, port_or_nil
+local data, ip, port
 local entity, cmd, params
 
 local running = true
@@ -22,39 +24,25 @@ local player_index = 0
 local start_time = nil
 local elapsed_time = nil
 
-local input = {
-    id = nil,
-    serial = 0,
-
-    selected = {},
-    right_click = {
-        active = false,
-        x = -1,
-        y = -1
-    },
-    spawn_unit = {
-        active = false,
-        x = -1,
-        y = -1
-    }
-}
+local input = {}
 
 print "beginning server loop..."
 
 while running do
-    data, msg_or_ip, port_or_nil = udp:receivefrom()
+    -- ip can be ip or network message
+    -- port can be port or nil
+    data, ip, port = udp:receivefrom()
 
-    if data and data == 'auth' and 
-    port_or_nil and msg_or_ip ~= 'timeout' then
+    if data and data == 'auth' and port and ip ~= 'timeout' then
 
         -- check if player already connected
-        if session[msg_or_ip] then 
+        if session[ip] then 
             goto cont 
         end
         
-        session[msg_or_ip] = true;
+        session[ip] = true;
 
-        local new_player = {ip = msg_or_ip, port = port_or_nil}
+        local new_player = {ip = ip, port = port}
         players[player_index] = new_player
 
         -- TODO: start as soon as enough players connected
@@ -77,37 +65,27 @@ while running do
         
         packer.print_table(rec_data)
 
-        if packer.to_bool(rec_data.right_click.active) then
+        if rec_data.cmd == 'move' then
             -- TODO: stub
-            print ("right click packet")
+            print ("-move- packet")
             
             local answer = packer.to_string({cmd = 'ack'})
-            udp:sendto(answer, msg_or_ip, port_or_nil)
-        end
-
-        if packer.to_bool(rec_data.spawn_unit.active) then
-            -- TODO: stub
-            print ("spawn unit packet")
-
-            local answer = packer.to_string({cmd = 'ack'})
-            udp:sendto(answer, msg_or_ip, port_or_nil)
+            udp:sendto(answer, ip, port)
         end
     
-    elseif msg_or_ip ~= 'timeout' then
+    elseif ip ~= 'timeout' then
 		error("Unknown network error: "..tostring(msg))
     else
         -- do nothing
 	end
 
     -- periodic updates
+    -- TODO: change to sockettime
     update_counter = update_counter +1
     if update_counter > update_rate then
 
         for ip, port in pairs(session) do
-            for k, v in pairs(world) do
-                local msg = packer.to_string({ent = k, cmd = 'at', x = v.x, y = v.y})
-                udp:sendto(msg, ip, port)
-            end
+            -- TODO: stub
         end
 
         update_counter = 0

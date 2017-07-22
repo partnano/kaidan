@@ -1,6 +1,8 @@
 local socket = require 'socket'
 local packer = require 'libs.packer'
 
+local InputStruct = require 'libs.structs.input_struct'
+
 local address, port = 'localhost', 11111
 
 local entities = {}
@@ -9,23 +11,11 @@ local updaterate = 0.1
 local start_time = nil
 local elapsed_time = nil
 
-local input = {
-    id = nil,
-    serial = 0,
-    time = 0,
+local client_id = nil
+local input_serial_counter = 0
 
-    selected = {},
-    right_click = {
-        active = false,
-        x = -1,
-        y = -1
-    },
-    spawn_unit = {
-        active = false,
-        x = -1,
-        y = -1
-    }
-}
+-- TODO: change to array to be sent (and remove acknowledged inputs)
+local input = {}
 
 local send_input = false
 
@@ -48,13 +38,13 @@ function love.mousepressed (x, y, button)
     if love.mouse.isDown(2) then
         x, y = love.mouse.getPosition()
         
-        input.serial = input.serial +1
-        input.right_click = {
-            active = true,
-            x = x,
-            y = y
-        }
-        input.time = elapsed_time
+        input = InputStruct:new()
+
+        input.serial = input_serial_counter +1
+        input.cmd = 'move'
+        input.pos = {x = x, y = y}
+
+        input.send_time = elapsed_time
 
         send_input = true
     end
@@ -66,7 +56,8 @@ function love.update (dt)
     if start_time then elapsed_time = socket.gettime() - start_time end
 
     if t > updaterate then
-        if send_input and input.id then
+        -- is send_input AND client_id really needed here?
+        if send_input and client_id then
             udp:send(packer.to_string(input))
         end
 
@@ -82,17 +73,17 @@ function love.update (dt)
             if rec_data.cmd == 'auth' then
                 start_time = socket.gettime()
                 elapsed_time = 0
-                input.id = tonumber(rec_data.id)
+                client_id = tonumber(rec_data.id)
 
                 print ("authenticated, start time: ", start_time)    
             
             elseif rec_data.cmd == 'ack' then
                 send_input = false
             
-            elseif rec_data.cmd == 'input' then
+            elseif rec_data.cmd == 'action' then
                 -- TODO: check if values actually exist
 
-                exec_input(rec_data.input)
+                exec_actions(rec_data.actions)
             else
                 print("Unknown command: ", data.cmd)
             end
@@ -105,16 +96,8 @@ function love.update (dt)
     until not data
 end
 
-local function exec_input(srv_input)
-    if srv_input.right_click.active then
-        print("right click at ", srv_input.right_click.x, srv_input.right_click.y)
-        -- TODO: stub
-    end
-
-    if srv_input.spawn_unit.active then
-        print("spawning unit at ", srv_input.right_click.x, srv_input.right_click.y)
-        -- TODO: stub
-    end
+local function exec_actions(actions)
+    -- TODO: stub
 end
 
 function love.draw () 
