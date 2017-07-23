@@ -1,20 +1,21 @@
-local InputStruct = {
+local Input = {
 
-    serial = 0,
-    send_time = 0,
+   packet_type = 'input',
+   serial = 0,
+   exec_time = 0,
 
-    selected_entities = {},
-    cmd = '',
-    pos = {x = -1, y = -1}
+   selected_entities = {},
+   cmd = '',
+   pos = {x = -1, y = -1}
 
 }
 
-function InputStruct:new (o)
-    o = o or {}
-    setmetatable( o, self)
-    self.__index = self
+function Input:new (o)
+   o = o or {}
+   setmetatable( o, self )
+   self.__index = self
 
-    return o
+   return o
 end
 
-return InputStruct
+return Input

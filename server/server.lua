@@ -1,7 +1,7 @@
 local socket = require 'socket'
 local udp = socket.udp()
 
-local InputStruct = require 'libs.structs.input_struct'
+-- local InputStruct = require 'libs.structs.input_struct' -- do I really need that here?
 
 local packer = require 'libs.packer'
 
@@ -19,10 +19,10 @@ local start_time = nil
 local elapsed_time = nil
 
 local last_update_time = socket.gettime()
-local now = nil
 local update_rate = 0.1
 
-local input = {}
+local send_actions = false
+local actions = { cmd = 'actions', serial = 0, inputs = {} }
 
 udp:settimeout(0)
 udp:setsockname('*', 11111)
@@ -37,12 +37,13 @@ while running do
    if data and data == 'auth' and port and ip ~= 'timeout' then
 
       -- check if player already connected
-      if session[ip] then 
+      local _id = ip .. ":" .. port
+      if session[_id] then 
 	 goto cont 
       end
       
-      session[ip] = true;
-
+      session[_id] = {ip = ip, port = port}
+      
       local new_player = {ip = ip, port = port}
       players[player_index] = new_player
 
@@ -65,13 +66,22 @@ while running do
       rec_data = packer.to_table(data)
       
       packer.print_table(rec_data)
+      print(rec_data.packet_type)
 
-      if rec_data.cmd == 'move' then
-	 -- TODO: stub
-	 print ("-move- packet")
+      if rec_data.packet_type == 'input' then
+
+	 -- ack
+	 local _answer = packer.to_string({cmd = 'ack', serial = rec_data.serial})
+	 udp:sendto(_answer, ip, port)
+
+	 local _id = ip .. "_" .. port .. "_" .. rec_data.serial
+	 actions.inputs[_id] = rec_data
+
+	 -- TODO: change 0.2 to conf variable
+	 actions.inputs[_id].exec_time = rec_data.exec_time + 0.2
+
+	 send_actions = true
 	 
-	 local answer = packer.to_string({cmd = 'ack', serial = rec_data.serial})
-	 udp:sendto(answer, ip, port)
       end
       
    elseif ip ~= 'timeout' then
@@ -80,20 +90,27 @@ while running do
       -- do nothing
    end
 
+   ::cont::
+   
    -- periodic updates
    if not last_update_time then last_update_time = socket.gettime() end
-   
-   now = socket.gettime()
-   if now - last_update_time > update_rate then
 
-      for ip, port in pairs(session) do
-	 -- TODO: stub
+   
+   local _now = socket.gettime()
+   if _now - last_update_time > update_rate then
+
+      if send_actions then
+	 for _, info in pairs(session) do
+	    udp:sendto(packer.to_string(actions), info.ip, info.port)
+	 end
+	 
+	 -- TODO: only do this after client acks !!!
+	 actions.inputs = {}
+	 send_actions = false
       end
 
       last_update_time = _now
    end
-
-   ::cont::
 
    socket.sleep(0.001)
 end

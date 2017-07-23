@@ -34,14 +34,16 @@ function love.mousepressed (x, y, button)
    
    if love.mouse.isDown(2) then
       x, y = love.mouse.getPosition()
-      
+
+      -- FIXME: to do this correctly packer needs to support metatables (objects)
       input = InputStruct:new()
 
+      input.packet_type = 'input'
       input.serial = input_serial_counter
       input.cmd = 'move'
       input.pos = {x = x, y = y}
 
-      input.send_time = elapsed_time
+      input.exec_time = elapsed_time
 
       table.insert(inputs_to_send, input)
 
@@ -62,9 +64,10 @@ function love.update (dt)
       -- NOTE: networking should only use sockettime
       local _now = socket.gettime()
       if _now - last_update_time > updaterate then
-	 print ("before loop ", _now - last_update_time, updaterate)
 	 for _, input in pairs(inputs_to_send) do
-
+	    
+	    --print(packer.to_string(input))
+	    --print("sending...", _now - last_update_time, updaterate, input.serial)
 	    udp:send(packer.to_string(input))
 	    
 	 end
@@ -88,7 +91,6 @@ function love.update (dt)
 	    print ("authenticated, start time: ", start_time)    
             
 	 elseif rec_data.cmd == 'ack' then
-	    -- TODO: delete acknowledged input
 
 	    for i, input in ipairs(inputs_to_send) do
 	       if input.serial == tonumber(rec_data.serial) then
@@ -97,10 +99,14 @@ function love.update (dt)
 	       end
 	    end
             
-	 elseif rec_data.cmd == 'action' then
+	 elseif rec_data.cmd == 'actions' then
 	    -- TODO: check if values actually exist
 
-	    exec_actions(rec_data.actions)
+	    print("received something")
+	    if rec_data.inputs then
+	       packer.print_table(rec_data.inputs)
+	    end
+	    --exec_actions(rec_data.inputs)
 	 else
 	    print("Unknown command: ", data.cmd)
 	 end

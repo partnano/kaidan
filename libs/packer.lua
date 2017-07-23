@@ -14,10 +14,18 @@ end
 -- transforms table to string in 
 -- key:value;key:value;...
 -- format
-function packer.to_string (table)
+function packer.to_string (tab)
     local output = ""
 
-    for k, v in pairs(table) do
+    -- TODO: metatable support, this is stackoverflowing ...
+    -- local mt = getmetatable(tab)
+    -- print (mt)
+
+    -- if mt ~= nil then
+    --    output = output .. packer.to_string(mt)
+    -- end
+    
+    for k, v in pairs(tab) do
         if type(v) == "table" then
             output = output .. tostring(k) .. ":(" .. packer.to_string(v) .. ");"
         else
@@ -35,16 +43,16 @@ function packer.to_table (str)
     local output = {}
 
     -- matches recursive tables in strings ( k:(..) )
-    local inner_table_pair_match = "[%a%d_]*:%b()"
+    local inner_table_pair_match = "[%a%d%._]*:%b()"
 
     -- matches the actual inner table ( (..) ) (: & () need to be cut)
     local inner_table_value_match = ":%([%(%)%.%-%a%d%s:;_]*%)"
 
     -- matches (leftover) pairs ( k:v )
-    local pair_match = "[%a%d_]*:[%a%d%s%.%-_]*"
+    local pair_match = "[%a%d%._]*:[%a%d%s%.%-_]*"
 
     -- matches key of a pair
-    local key_match = "^[%a%d_]*"
+    local key_match = "^[%a%d%._]*"
 
     -- matches value of a pair (: needs to be cut)
     local value_match = ":[%.%-%a%d%s_]*"
