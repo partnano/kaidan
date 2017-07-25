@@ -18,6 +18,9 @@ local player_index = 0
 local start_time = nil
 local elapsed_time = nil
 
+local required_players = 1
+local auth_sent = false
+
 local last_update_time = socket.gettime()
 local update_rate = 0.1
 
@@ -41,25 +44,31 @@ while running do
       if session[_id] then 
 	 goto cont 
       end
-      
-      session[_id] = {ip = ip, port = port}
-      
-      local new_player = {ip = ip, port = port}
-      players[player_index] = new_player
 
-      -- TODO: start as soon as enough players connected
-      -- for now this is only for a single client ... which is rather useless
+      local new_player = {ip = ip, port = port}
+      session[_id] = new_player
+      players[player_index] = new_player
+      
+      player_index = player_index +1
+      required_players = required_players -1
+
+      goto cont
+   end
+
+   if required_players == 0 and not auth_sent then
+
       start_time = socket.gettime()
       elapsed_time = 0
 
-      local _msg = packer.to_string({cmd = 'auth', id = player_index})
+      for id, player in pairs(players) do
+	 
+	 local _msg = packer.to_string({cmd = 'auth', id = id})
+	 udp:sendto(_msg, player.ip, player.port)
+	 print("Sent auth packet to ", player.ip, player.port)
 
-      udp:sendto(_msg, new_player.ip, new_player.port)
-      print("Sent auth packet to ", new_player.ip, new_player.port)
-      
-      player_index = player_index +1
+      end
 
-      goto cont
+      auth_sent = true
    end
 
    if data then

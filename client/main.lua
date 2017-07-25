@@ -30,25 +30,27 @@ function love.load ()
 end
 
 function love.mousepressed (x, y, button)
-   local x, y
-   
-   if love.mouse.isDown(2) then
-      x, y = love.mouse.getPosition()
+   if client_id then
+      
+      if love.mouse.isDown(2) then
 
-      -- FIXME: to do this correctly packer needs to support metatables (objects)
-      input = InputStruct:new()
+	 -- FIXME: to do this correctly packer needs to support metatables (objects)
+	 input = InputStruct:new()
 
-      input.packet_type = 'input'
-      input.serial = input_serial_counter
-      input.cmd = 'move'
-      input.pos = {x = x, y = y}
+	 input.packet_type = 'input'
+	 input.client_id = client_id
+	 input.serial = input_serial_counter
+	 input.cmd = 'move'
+	 input.pos = {x = x, y = y}
 
-      input.exec_time = elapsed_time
+	 input.exec_time = elapsed_time
 
-      table.insert(inputs_to_send, input)
+	 table.insert(inputs_to_send, input)
 
-      --finish up
-      input_serial_counter = input_serial_counter +1
+	 --finish up
+	 input_serial_counter = input_serial_counter +1
+      end
+
    end
 end
 
@@ -88,7 +90,7 @@ function love.update (dt)
 	    elapsed_time = 0
 	    client_id = tonumber(rec_data.id)
 
-	    print ("authenticated, start time: ", start_time)    
+	    print ("authenticated, start time: " .. start_time, "id: " .. client_id)    
             
 	 elseif rec_data.cmd == 'ack' then
 

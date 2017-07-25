@@ -1,6 +1,7 @@
 local Input = {
 
    packet_type = 'input',
+   client_id = -1,
    serial = 0,
    exec_time = 0,
 
