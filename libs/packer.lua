@@ -11,6 +11,33 @@ function packer.print_table (t, ind)
     end
 end
 
+-- NOTE: shallow
+function packer.table_size (t)
+   local c = 0
+
+   for _, _ in pairs(t) do
+      c = c+1
+   end
+
+   return c
+end
+
+-- NOTE: http://lua-users.org/wiki/CopyTable
+function packer.copy (orig)
+   local orig_type = type(orig)
+   local copy
+   if orig_type == 'table' then
+      copy = {}
+      for orig_key, orig_value in next, orig, nil do
+	 copy[packer.copy(orig_key)] = packer.copy(orig_value)
+      end
+      setmetatable(copy, packer.copy(getmetatable(orig)))
+   else -- number, string, boolean, etc
+      copy = orig
+   end
+   return copy
+end
+
 -- NOTE: this does not support metatable recursion
 
 -- transforms table to string in 

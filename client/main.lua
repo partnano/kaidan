@@ -84,6 +84,11 @@ function love.update (dt)
 
       if data then
 	 rec_data = packer.to_table(data)
+
+	 -- NOTE: debug
+	 print("\n---- rec_data")
+	 packer.print_table(rec_data)
+	 print("---- \n")
 	 
 	 if rec_data.cmd == 'auth' then
 	    start_time = socket.gettime()
@@ -103,12 +108,19 @@ function love.update (dt)
             
 	 elseif rec_data.cmd == 'actions' then
 	    -- TODO: check if values actually exist
-
+	    
 	    print("received something")
-	    if rec_data.inputs then
+	    if rec_data.inputs and rec_data.serial then
+	       print("sending ack for")
 	       packer.print_table(rec_data.inputs)
+
+	       local _answer = {packet_type = 'ack',
+				serial = rec_data.serial,
+				client_id = client_id}
+	       
+	       udp:send(packer.to_string(_answer))
+	       --exec_actions(rec_data.inputs)
 	    end
-	    --exec_actions(rec_data.inputs)
 	 else
 	    print("Unknown command: ", data.cmd)
 	 end
