@@ -1,7 +1,7 @@
 local socket = require 'socket'
 local packer = require 'libs.packer'
 
-local InputStruct = require 'libs.structs.input_struct'
+local InputPacket = require 'libs.structs.input_struct'
 
 local address, port = 'localhost', 11111
 
@@ -35,9 +35,9 @@ function love.mousepressed (x, y, button)
       if love.mouse.isDown(2) then
 
 	 -- FIXME: to do this correctly packer needs to support metatables (objects)
-	 input = InputStruct:new()
+	 input = InputPacket:copy()
 
-	 input.packet_type = 'input'
+	 --input.packet_type = 'input'
 	 input.client_id = client_id
 	 input.serial = input_serial_counter
 	 input.cmd = 'move'

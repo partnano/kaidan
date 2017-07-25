@@ -11,12 +11,15 @@ local Input = {
 
 }
 
-function Input:new (o)
-   o = o or {}
-   setmetatable( o, self )
-   self.__index = self
+function Input:copy()
+   -- NOTE: shallow copy (for now)
+   local copy = {}
 
-   return o
+   for k, v in pairs(self) do
+      copy[k] = v
+   end
+
+   return copy
 end
 
 return Input

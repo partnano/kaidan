@@ -11,19 +11,13 @@ function packer.print_table (t, ind)
     end
 end
 
+-- NOTE: this does not support metatable recursion
+
 -- transforms table to string in 
 -- key:value;key:value;...
 -- format
 function packer.to_string (tab)
     local output = ""
-
-    -- TODO: metatable support, this is stackoverflowing ...
-    -- local mt = getmetatable(tab)
-    -- print (mt)
-
-    -- if mt ~= nil then
-    --    output = output .. packer.to_string(mt)
-    -- end
     
     for k, v in pairs(tab) do
         if type(v) == "table" then
