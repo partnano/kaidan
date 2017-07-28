@@ -9,11 +9,16 @@ packer = require 'libs.packer'
 
 -- managers
 local input_manager = require 'src.input_manager'
+local action_manager = require 'src.action_manager'
 local network_manager = require 'src.network_manager'
 
 function love.load ()
    input_manager.network_manager = network_manager
+   
    network_manager.input_manager = input_manager
+   network_manager.action_manager = action_manager
+
+   action_manager.network_manager = network_manager
    
    network_manager:load()
 end
@@ -38,7 +43,10 @@ function love.update (dt)
 
    -- update elapsed time
    network_manager:update_time()
-   
+
+   -- exec actions
+   action_manager:update()   
+
    -- send stuff
    network_manager:update_server()
 
@@ -49,4 +57,5 @@ end
 
 function love.draw () 
    lg.print("FPS: " .. lt.getFPS(), 10, 10)
+   lg.print("Step: " .. network_manager.current_step, 10, 22)
 end

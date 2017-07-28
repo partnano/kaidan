@@ -1,6 +1,7 @@
 local NetworkManager = {
    input_manager = nil,
-
+   action_manager = nil,
+   
    socket = require 'socket',
    conn = nil,
 
@@ -10,6 +11,7 @@ local NetworkManager = {
    updaterate = 0.1,
    start_time = nil,
    elapsed_time = nil,
+   current_step = 0,
 
    last_update_time = nil
 }
@@ -29,6 +31,7 @@ function NetworkManager:update_time ()
    if self.start_time then
       self.elapsed_time = self.socket.gettime() - self.start_time
    end
+
 end
 
 function NetworkManager:update_server ()
@@ -62,9 +65,9 @@ function NetworkManager:receive ()
 	 rec_data = packer.to_table(data)
 
 	 -- NOTE: debug
-	 print("\n---- rec_data")
-	 packer.print_table(rec_data)
-	 print("---- \n")
+	 -- print("\n---- rec_data")
+	 -- packer.print_table(rec_data)
+	 -- print("---- \n")
 	 
 	 if rec_data.cmd == 'auth' then
 	    self.start_time = self.socket.gettime()
@@ -84,20 +87,37 @@ function NetworkManager:receive ()
 
 	    local _s = tonumber(rec_data.serial)
 	    if _s then self.input_manager:remove_input_to_send(_s) end
-            
+
+	 elseif rec_data.cmd == 'step' then
+
+	    local _t = tonumber(rec_data.step)
+	    if _t then self.current_step = _t end
+
+	    print ("- Step " .. self.current_step .. " -\n")
+	    
 	 elseif rec_data.cmd == 'actions' then
 	    
-	    print("received something")
 	    if rec_data.inputs and rec_data.serial then
-	       print("sending ack for")
-	       packer.print_table(rec_data.inputs)
+
+	       -- NOTE: debug
+	       print("-- BEGIN RECEIVED ACTIONS")
+	       for id, input in pairs(rec_data.inputs) do
+		  print("#" .. input.serial,
+			"Supposed Step: " .. input.exec_step,
+			"Command: " .. input.cmd)
+	       end
+	       print("-- END RECEIVED ACTIONS\n")
+	       -- NOTE: debug end
 
 	       local _answer = {packet_type = 'ack',
 				serial = rec_data.serial,
 				client_id = client_id}
 	       
 	       self.conn:send(packer.to_string(_answer))
-	       --exec_actions(rec_data.inputs)
+
+	       for _, input in pairs(rec_data.inputs) do
+		  table.insert(self.action_manager.actions, input)
+	       end
 	    end
 	 else
 	    print("Unknown command: ", data.cmd)

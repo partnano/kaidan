@@ -35,6 +35,7 @@ function InputManager:mousepressed (x, y, button)
 	 input.pos = {x = x, y = y}
 
 	 input.exec_time = self.network_manager.elapsed_time
+	 input.exec_step = self.network_manager.current_step
 
 	 table.insert(self.inputs_to_send, input)
 
@@ -55,10 +56,6 @@ end
 
 function InputManager:keyreleased (key, scancode)
    -- TODO: stub
-end
-
-function InputManager:update (dt, elapsed)
-   self.elapsed_time = elapsed
 end
 
 return InputManager

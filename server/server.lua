@@ -18,11 +18,12 @@ local player_index = 0
 local start_time = nil
 local elapsed_time = nil
 
-local required_players = 1
+local required_players = 2
 local auth_sent = false
 
 local last_update_time = nil
-local update_rate = 0.1
+local update_rate = 1
+local current_step = nil
 
 local send_actions = false
 local actions_to_send = { cmd = 'actions', serial = 0, inputs = {} }
@@ -63,6 +64,7 @@ while running do
 
       start_time = socket.gettime()
       elapsed_time = 0
+      current_step = 0
 
       for id, player in pairs(players) do
 	 
@@ -77,7 +79,7 @@ while running do
    end
    -- [ AUTH & STARTUP ] --
 
-   -- [ ACTIVE SESSINO ] --
+   -- [ ACTIVE SESSION ] --
    if data then
       rec_data = packer.to_table(data)
 
@@ -98,7 +100,10 @@ while running do
 	    actions_to_send.inputs[_id] = rec_data
 
 	    -- TODO: change 0.2 to conf variable
-	    actions_to_send.inputs[_id].exec_time = rec_data.exec_time + 0.2
+	    --actions_to_send.inputs[_id].exec_time = rec_data.exec_time + 0.2
+
+	    -- TODO: maybe verify?
+	    actions_to_send.inputs[_id].exec_step = current_step +1
 
 	    send_actions = true
 
@@ -128,6 +133,15 @@ while running do
    local _now = socket.gettime()
    if _now - last_update_time > update_rate then
 
+      if current_step then
+	 for _, player in pairs(players) do
+	    local msg = packer.to_string({cmd = "step", step = current_step})
+	    udp:sendto(msg, player.ip, player.port)
+	 end
+	 
+	 current_step = current_step +1
+      end
+      
       if send_actions then
 	 
 	 if all_acked then
@@ -141,8 +155,8 @@ while running do
 	    actions_to_send.serial = actions_to_send.serial +1
 	 end
 	 
-	 for _, info in pairs(players_to_ack) do
-	    udp:sendto(packer.to_string(actions_to_ack), info.ip, info.port)
+	 for _, player in pairs(players_to_ack) do
+	    udp:sendto(packer.to_string(actions_to_ack), player.ip, player.port)
 	 end
 
 	 if packer.table_size(players_to_ack) == 0 then
