@@ -51,7 +51,27 @@ function InputManager:mousereleased (x, y, button)
 end
 
 function InputManager:keypressed (key, scancode, isrepeat)
-   -- TODO: stub
+   if client_id then
+
+      -- right click
+      if key == 'a' then
+	 local input = self.InputPacket:copy()
+
+	 input.client_id = client_id
+	 input.serial = self.serial_counter
+	 input.cmd = 'move'
+	 input.pos = {x = love.mouse.getX(), y = love.mouse.getY()}
+
+	 input.exec_time = self.network_manager.elapsed_time
+	 input.exec_step = self.network_manager.current_step
+
+	 table.insert(self.inputs_to_send, input)
+
+	 --finish up
+	 self.serial_counter = self.serial_counter +1
+      end
+      
+   end
 end
 
 function InputManager:keyreleased (key, scancode)

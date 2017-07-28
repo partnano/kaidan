@@ -21,12 +21,18 @@ function ActionManager:update ()
       end
    end
 
-   table.sort(self.actions_this_step,
-	      function(a, b)
-		 -- FIXME: 2+ players, same serial ?
-		 return tonumber(a.serial) < tonumber(b.serial)
-	      end
-   )
+   local function comp_serial (a, b)
+      a.serial, b.serial = tonumber(a.serial), tonumber(b.serial)
+      a.rand, b.rand = tonumber(a.rand), tonumber(b.rand)
+
+      if a.serial == b.serial then
+	 return a.rand < b.rand
+      end
+
+      return a.serial < b.serial
+   end
+
+   table.sort(self.actions_this_step, comp_serial)
 
    -- NOTE: debug
    if #self.actions_this_step > 0 then print("-- BEGIN EXEC ACTION") end

@@ -22,7 +22,7 @@ local required_players = 2
 local auth_sent = false
 
 local last_update_time = nil
-local update_rate = 1
+local update_rate = 3
 local current_step = nil
 
 local send_actions = false
@@ -99,11 +99,9 @@ while running do
 	    local _id = ip .. "_" .. port .. "_" .. rec_data.serial
 	    actions_to_send.inputs[_id] = rec_data
 
-	    -- TODO: change 0.2 to conf variable
-	    --actions_to_send.inputs[_id].exec_time = rec_data.exec_time + 0.2
-
 	    -- TODO: maybe verify?
 	    actions_to_send.inputs[_id].exec_step = current_step +1
+	    actions_to_send.inputs[_id].rand = math.random(100)
 
 	    send_actions = true
 

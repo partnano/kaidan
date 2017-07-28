@@ -5,6 +5,7 @@ local Input = {
    serial = 0,
    exec_time = 0,
    exec_step = 0,
+   rand = 0,
 
    selected_entities = {},
    cmd = '',

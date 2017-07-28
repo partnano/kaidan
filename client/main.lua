@@ -32,11 +32,11 @@ function love.mousereleased (x, y, button)
 end
 
 function love.keypressed (key, scancode, isrepeat)
-   input_manager:keypressed(x, y, button)
+   input_manager:keypressed(key, scancode, isrepeat)
 end
 
 function love.keyreleased (key, scancode)
-   input_manager:keyreleased(x, y, button)
+   input_manager:keyreleased(key, scancode)
 end
 
 function love.update (dt)
