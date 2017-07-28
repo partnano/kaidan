@@ -1,8 +1,6 @@
 local socket = require 'socket'
 local udp = socket.udp()
 
--- local InputStruct = require 'libs.structs.input_struct' -- do I really need that here?
-
 local packer = require 'libs.packer'
 
 local session = {} -- these two are kinda the same, but I need two different ids...
@@ -18,11 +16,11 @@ local player_index = 0
 local start_time = nil
 local elapsed_time = nil
 
-local required_players = 2
+local required_players = 1
 local auth_sent = false
 
 local last_update_time = nil
-local update_rate = 3
+local update_rate = 0.1
 local current_step = nil
 
 local send_actions = false
@@ -106,6 +104,7 @@ while running do
 	    send_actions = true
 
 	 elseif rec_data.packet_type == 'ack' then
+
 	    if rec_data.serial
 	       and tonumber(rec_data.serial) == actions_to_ack.serial
 	       and rec_data.client_id

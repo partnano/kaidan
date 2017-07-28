@@ -102,7 +102,8 @@ function NetworkManager:receive ()
 	       -- NOTE: debug
 	       print("-- BEGIN RECEIVED ACTIONS")
 	       for id, input in pairs(rec_data.inputs) do
-		  print("#" .. input.serial,
+		  print("Client " .. input.client_id,
+			"#" .. input.serial,
 			"Supposed Step: " .. input.exec_step,
 			"Command: " .. input.cmd)
 	       end

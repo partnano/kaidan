@@ -2,6 +2,7 @@ local InputManager = {
    -- networking packets
    InputPacket = require 'libs.structs.input_struct',
    network_manager = nil,
+   entity_manager = nil,
    
    inputs_to_send = {},
    serial_counter = 0,
@@ -25,6 +26,10 @@ end
 function InputManager:mousepressed (x, y, button)
    if client_id then
 
+      if button == 1 then
+	 self.entity_manager:prepare_select(x, y)
+      end
+      
       -- right click
       if button == 2 then
 	 local input = self.InputPacket:copy()
@@ -47,7 +52,13 @@ function InputManager:mousepressed (x, y, button)
 end
 
 function InputManager:mousereleased (x, y, button)
-   -- TODO: stub
+   if client_id then
+
+      if button == 1 then
+	 self.entity_manager:select(x, y)
+      end
+      
+   end
 end
 
 function InputManager:keypressed (key, scancode, isrepeat)
@@ -59,7 +70,7 @@ function InputManager:keypressed (key, scancode, isrepeat)
 
 	 input.client_id = client_id
 	 input.serial = self.serial_counter
-	 input.cmd = 'move'
+	 input.cmd = 'spawn'
 	 input.pos = {x = love.mouse.getX(), y = love.mouse.getY()}
 
 	 input.exec_time = self.network_manager.elapsed_time

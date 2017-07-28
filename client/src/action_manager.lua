@@ -1,5 +1,6 @@
 local ActionManager = {
    network_manager = nil,
+   entity_manager = nil,
    
    actions = {},
    actions_this_step = {}
@@ -38,10 +39,21 @@ function ActionManager:update ()
    if #self.actions_this_step > 0 then print("-- BEGIN EXEC ACTION") end
    for id, action in ipairs(self.actions_this_step) do
 
-      	 -- TODO: value check
-	 print ("#" .. action.serial,
-		"Exec Step " .. self.network_manager.current_step .. ": ",
-		action.cmd, "x: " .. action.pos.x, "y: " .. action.pos.y)
+      -- TODO: value check
+      print ("Client " .. action.client_id,
+	     "#" .. action.serial,
+	     "Exec Step " .. self.network_manager.current_step .. ": ",
+	     action.cmd, "x: " .. action.pos.x, "y: " .. action.pos.y)
+
+      if action.cmd == 'move' then
+	 --self.entity_manager:move(action.selected, action.pos.x, action.pos.y)
+      elseif action.cmd == 'spawn' then
+	 local x, y = tonumber(action.pos.x), tonumber(action.pos.y)
+
+	 if x and y then
+	    self.entity_manager:spawn(x, y)
+	 end
+      end
       
    end
    -- NOTE: debug
