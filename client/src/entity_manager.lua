@@ -89,6 +89,10 @@ end
 function EntityManager:add_to_move_queue (selected_ids, x, y)
    -- TODO: calculate customized goal coords
 
+   -- NOTE: debug
+   packer.print_table (selected_ids)
+
+   -- TODO: packer patch to recreate arrays?!
    for _, id in pairs (selected_ids) do
       local _id = tonumber (id)
 
@@ -115,14 +119,23 @@ end
 
 function EntityManager:move (ds, cs)
 
-   for i, entity in pairs (self.entities_to_move) do
+   local to_remove = {}
 
+   -- ipairs for (deterministic) order
+   for i, entity in ipairs (self.entities_to_move) do
       -- NOTE: debug
       print ("Moving unit " .. entity.ent.id, "on step " .. cs)
       
       local goal_reached = entity.ent:move (entity.goal.x, entity.goal.y)
 
-      if goal_reached then self.entities_to_move[i] = nil end
+      if goal_reached then table.insert (to_remove, i) end
+   end
+
+   -- because of ipairs the elements need to be removed in a more annoying fashion
+   table.sort (to_remove, function (a, b) return a > b end)
+   
+   for _, i in ipairs(to_remove) do
+      table.remove (self.entities_to_move, i)
    end
 
 end
