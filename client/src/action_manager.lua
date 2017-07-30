@@ -51,6 +51,11 @@ function ActionManager:step (ds)
 	     action.cmd, "x: " .. action.pos.x, "y: " .. action.pos.y)
 
       if action.cmd == 'move' then
+	 -- transform to array
+	 -- NOTE: UGLY!
+	 action.selected_entities =
+	    packer.to_array (packer.to_string (action.selected_entities))
+	 
 	 self.entity_manager:add_to_move_queue (action.selected_entities,
 						action.pos.x, action.pos.y)
 	 

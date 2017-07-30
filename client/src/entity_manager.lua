@@ -89,11 +89,7 @@ end
 function EntityManager:add_to_move_queue (selected_ids, x, y)
    -- TODO: calculate customized goal coords
 
-   -- NOTE: debug
-   packer.print_table (selected_ids)
-
-   -- TODO: packer patch to recreate arrays?!
-   for _, id in pairs (selected_ids) do
+   for _, id in ipairs (selected_ids) do
       local _id = tonumber (id)
 
       if _id then

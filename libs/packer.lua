@@ -46,7 +46,7 @@ end
 function packer.to_string (tab)
     local output = ""
     
-    for k, v in pairs(tab) do
+    for k, v in pairs (tab) do
         if type(v) == "table" then
             output = output .. tostring(k) .. ":(" .. packer.to_string(v) .. ");"
         else
@@ -55,6 +55,36 @@ function packer.to_string (tab)
     end
 
     return output
+end
+
+-- transforms string to array integer indices
+-- PRECONDITION: input was an actual array, otherwise this will fail
+-- TODO: inner tables like to_table
+function packer.to_array (str)
+   local pair_match  = "[%d]*:[%a%d%s%.%-_]*"
+   local key_match   = "[%d]*"
+   local value_match = ":[%a%d%s%.%-_]*"
+
+   local output = {}
+   
+   for pair in str:gmatch (pair_match) do
+      local k = pair:match (key_match)
+      local v = pair:match (value_match)
+
+      k = tonumber(k)
+
+      if not k then
+	 error ("packer/to_array: trying to convert non-array!")
+      end
+      
+      if #v > 1 then v = v:sub(2)
+      else           v = ''
+      end
+
+      output[k] = v
+   end
+
+   return output
 end
 
 -- transforms a stringified table back to a table
@@ -128,5 +158,9 @@ end
 
 -- print ("-- OUTPUT")
 -- print_table (test_table_back)
+
+-- test_array = {1, 2, 3, 4}
+-- test_array[2] = nil
+-- packer.print_table(packer.to_array(packer.to_string(test_array)))
 
 return packer
