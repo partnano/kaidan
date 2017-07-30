@@ -16,7 +16,7 @@ local player_index = 0
 local start_time = nil
 local elapsed_time = nil
 
-local required_players = 1
+local required_players = 2
 local auth_sent = false
 
 local last_update_time = nil

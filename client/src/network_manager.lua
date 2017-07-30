@@ -90,10 +90,14 @@ function NetworkManager:receive ()
 
 	 elseif rec_data.cmd == 'step' then
 
+	    local old_step = self.current_step
+	    
 	    local _t = tonumber(rec_data.step)
 	    if _t then self.current_step = _t end
 
 	    print ("- Step " .. self.current_step .. " -\n")
+	    
+	    self.action_manager:step (self.current_step - old_step)
 	    
 	 elseif rec_data.cmd == 'actions' then
 	    
