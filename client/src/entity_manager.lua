@@ -114,7 +114,7 @@ function EntityManager:add_to_move_queue (selected_ids, x, y)
 end
 
 function EntityManager:move (ds, cs)
-
+   
    local to_remove = {}
 
    -- ipairs for (deterministic) order
@@ -133,7 +133,7 @@ function EntityManager:move (ds, cs)
    for _, i in ipairs(to_remove) do
       table.remove (self.entities_to_move, i)
    end
-
+   
 end
 
 function EntityManager:draw ()

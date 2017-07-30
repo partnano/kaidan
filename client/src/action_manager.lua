@@ -27,8 +27,8 @@ function ActionManager:step (ds)
 
    -- DETERMINING ORDER OF ACTONS
    local function comp_serial (a, b)
-      a.serial, b.serial = tonumber(a.serial), tonumber(b.serial)
-      a.rand, b.rand = tonumber(a.rand), tonumber(b.rand)
+      a.serial, b.serial = tonumber (a.serial), tonumber (b.serial)
+      a.rand, b.rand     = tonumber (a.rand),   tonumber (b.rand)
 
       if a.serial == b.serial then
 	 return a.rand < b.rand
@@ -37,7 +37,7 @@ function ActionManager:step (ds)
       return a.serial < b.serial
    end
 
-   table.sort(self.actions_this_step, comp_serial)
+   table.sort (self.actions_this_step, comp_serial)
 
    -- EXECUTING ACTIONS
    -- NOTE: debug

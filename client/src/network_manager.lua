@@ -44,10 +44,12 @@ function NetworkManager:update_server ()
       local now = self.socket.gettime()
       if now - self.last_update_time > self.updaterate then
 
-	 for _, input in pairs(inputs) do
+	 for _, input in pairs (inputs) do
 	    --print(packer.to_string(input))
-	    --print("sending...", _now - last_update_time, updaterate, input.serial)
-	    self.conn:send(packer.to_string(input))
+	    print("sending...", now - self.last_update_time,
+		  self.updaterate, input.serial)
+	    
+	    self.conn:send (packer.to_string(input))
 	 end
 	 
 	 self.last_update_time = now

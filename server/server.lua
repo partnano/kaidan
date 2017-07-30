@@ -16,7 +16,7 @@ local player_index = 0
 local start_time = nil
 local elapsed_time = nil
 
-local required_players = 1
+local required_players = 2
 local auth_sent = false
 
 local last_update_time = nil
@@ -86,8 +86,7 @@ while running do
       packer.print_table(rec_data)
       print("---- \n")
 
-      if rec_data.packet_type then
-	 
+      if rec_data.packet_type then	 
 	 if rec_data.packet_type == 'input' then
 
 	    -- acknowledgement about client input
@@ -127,23 +126,14 @@ while running do
    -- periodic updates
    if not last_update_time then last_update_time = socket.gettime() end
 
-   local _now = socket.gettime()
-   if _now - last_update_time > update_rate then
+   local now = socket.gettime()
+   if now - last_update_time > update_rate then
 
-      if current_step then
-	 for _, player in pairs(players) do
-	    local msg = packer.to_string({cmd = "step", step = current_step})
-	    udp:sendto(msg, player.ip, player.port)
-	 end
-	 
-	 current_step = current_step +1
-      end
-      
-      if send_actions then
-	 
+      if send_actions or packer.table_size (actions_to_send.inputs) > 0 then
+
 	 if all_acked then
-	    players_to_ack = packer.copy(players)
-	    all_acked = false
+	    players_to_ack = packer.copy (players)
+	    all_acked      = false
 
 	    actions_to_ack.inputs = actions_to_send.inputs
 	    actions_to_ack.serial = actions_to_send.serial
@@ -152,18 +142,27 @@ while running do
 	    actions_to_send.serial = actions_to_send.serial +1
 	 end
 	 
-	 for _, player in pairs(players_to_ack) do
-	    udp:sendto(packer.to_string(actions_to_ack), player.ip, player.port)
+	 for _, player in pairs (players_to_ack) do
+	    udp:sendto (packer.to_string (actions_to_ack), player.ip, player.port)
 	 end
 
-	 if packer.table_size(players_to_ack) == 0 then
+	 if packer.table_size (players_to_ack) == 0 then
 	    send_actions = false
 	    all_acked = true
 	 end
 	 
       end
 
-      last_update_time = _now
+      if current_step then
+	 for _, player in pairs (players) do
+	    local msg = packer.to_string ({ cmd = "step", step = current_step })
+	    udp:sendto (msg, player.ip, player.port)
+	 end
+	 
+	 current_step = current_step +1
+      end
+      
+      last_update_time = now
    end
 
    -- [ ACTIVE SESSION ] --
