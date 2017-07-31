@@ -45,23 +45,25 @@ function EntityManager:select (x, y)
    if x2 < x1 then is_inverse.x = true end
    if y2 < y1 then is_inverse.y = true end
 
+   
    local new_selections = {}
    
    for _, ent in pairs (self.entities) do
+      local ex, ey = ent:get_coords()
       local in_x, in_y = false, false
 
       if is_inverse.x
       then
-	 if ent.x > x2 and ent.x < x1 then in_x = true end
+	 if ex > x2 and ex < x1 then in_x = true end
       else
-	 if ent.x > x1 and ent.x < x2 then in_x = true end
+	 if ex > x1 and ex < x2 then in_x = true end
       end
 
       if is_inverse.y
       then
-	 if ent.y > y2 and ent.y < y1 then in_y = true end
+	 if ey > y2 and ey < y1 then in_y = true end
       else
-	 if ent.y > y1 and ent.y < y2 then in_y = true end
+	 if ey > y1 and ey < y2 then in_y = true end
       end
 
       if in_x and in_y then table.insert (new_selections, ent) end
@@ -96,15 +98,26 @@ function EntityManager:add_to_move_queue (selected_ids, x, y)
 	 for _, ent in pairs (self.entities) do
 	    if ent.id == _id then
 
-	       table.insert (self.entities_to_move,
-			     { ent = ent, goal = { x = x, y = y } })
+	       -- if entity is already moving replace it in move queue
+	       for i, moving in pairs (self.entities_to_move) do
+		  if ent.id == moving.ent.id then
+		     self.entities_to_move[i] =
+			{ ent = ent, goal = { x = x, y = y }, init = true }
 
+		     goto break2
+		  end
+	       end
+
+	       -- else just insert it
+	       table.insert (self.entities_to_move,
+			     { ent = ent, goal = { x = x, y = y }, init = true })
+
+	       ::break2::
 	       break
 
 	    end
 	 end
       end
-      
    end
 
    -- NOTE: debug
@@ -122,8 +135,10 @@ function EntityManager:move (ds, cs)
       -- NOTE: debug
       print ("Moving unit " .. entity.ent.id, "on step " .. cs)
       
-      local goal_reached = entity.ent:move (entity.goal.x, entity.goal.y)
+      local goal_reached = entity.ent:move (entity.goal.x, entity.goal.y, entity.init)
 
+      entity.init = false
+      
       if goal_reached then table.insert (to_remove, i) end
    end
 

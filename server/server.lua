@@ -13,24 +13,24 @@ local entity, cmd, params
 local running = true
 
 local player_index = 0
-local start_time = nil
+local start_time   = nil
 local elapsed_time = nil
 
-local required_players = 2
-local auth_sent = false
+local required_players = 1
+local auth_sent        = false
 
 local last_update_time = nil
-local update_rate = 0.1
-local current_step = nil
+local update_rate      = 0.1
+local current_step     = nil
 
-local send_actions = false
+local send_actions    = false
+local all_acked       = true
+local players_to_ack  = nil
 local actions_to_send = { cmd = 'actions', serial = 0, inputs = {} }
-local actions_to_ack = { cmd = 'actions', serial = 0, inputs = {} }
-local players_to_ack = nil
-local all_acked = true
+local actions_to_ack  = { cmd = 'actions', serial = 0, inputs = {} }
 
-udp:settimeout(0)
-udp:setsockname('*', 11111)
+udp:settimeout  (0)
+udp:setsockname ('*', 11111)
 
 print "beginning server loop..."
 
