@@ -45,34 +45,55 @@ function EntityManager:select (x, y)
    if x2 < x1 then is_inverse.x = true end
    if y2 < y1 then is_inverse.y = true end
 
+   -- detect if it was a click
+   local is_click = false
+   local x_diff = math.abs (x1 - x2)
+   local y_diff = math.abs (y1 - y2)
+
+   if x_diff < 5 and y_diff < 5 then is_click = true end
    
    local new_selections = {}
    
    for _, ent in pairs (self.entities) do
       local ex, ey = ent:get_coords()
-      local in_x, in_y = false, false
+      local er     = ent.shape:getRadius()
+      
+      if is_click then
+	 
+	 if x1 > ex - er and x1 < ex + er and
+	    y1 > ey - er and y1 < ey + er
+	 then
 
-      if is_inverse.x
-      then
-	 if ex > x2 and ex < x1 then in_x = true end
+	    table.insert (new_selections, ent)
+	    break
+	    
+	 end
+	 
       else
-	 if ex > x1 and ex < x2 then in_x = true end
-      end
+	 
+	 local in_x, in_y = false, false
 
-      if is_inverse.y
-      then
-	 if ey > y2 and ey < y1 then in_y = true end
-      else
-	 if ey > y1 and ey < y2 then in_y = true end
-      end
+	 if is_inverse.x then
+	    if ex > x2 and ex < x1 then in_x = true end
+	 else
+	    if ex > x1 and ex < x2 then in_x = true end
+	 end
 
-      if in_x and in_y then table.insert (new_selections, ent) end
+	 if is_inverse.y then
+	    if ey > y2 and ey < y1 then in_y = true end
+	 else
+	    if ey > y1 and ey < y2 then in_y = true end
+	 end
+
+	 if in_x and in_y then table.insert (new_selections, ent) end
+
+      end
    end
    
    self.selection.active = false
 
    if #new_selections > 0 then
-      for _, ent in pairs(self.selected_entities) do
+      for _, ent in pairs (self.selected_entities) do
 	 ent.selected = false
       end
       
