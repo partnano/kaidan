@@ -1,6 +1,7 @@
 local lg = love.graphics
 local lm = love.mouse
 local lp = love.physics
+local lt = love.timer
 
 local Entity = require 'src.entity'
 
@@ -15,6 +16,8 @@ local EntityManager = {
       active = false,
       x, y   = -1, -1
    },
+
+   last_click = 0,
 
    entities_to_move = {},
 }
@@ -37,6 +40,8 @@ end
 
 function EntityManager:select (x, y)
 
+   self.selection.active = false
+   
    local x1, y1 = self.selection.x, self.selection.y
    local x2, y2 = x, y
 
@@ -51,18 +56,33 @@ function EntityManager:select (x, y)
    local y_diff = math.abs (y1 - y2)
 
    if x_diff < 5 and y_diff < 5 then is_click = true end
+
+   local is_doubleclick = false
+
+   if is_click then
+      -- client time for client stuff
+      local time_now  = lt.getTime() * 1000
+      local time_diff = time_now - self.last_click
+
+      if time_diff < 250 then is_doubleclick = true end
+      self.last_click = time_now
+   end
    
    local new_selections = {}
    
    for _, ent in pairs (self.entities) do
+      -- TODO: get draw coords
       local ex, ey = ent:get_coords()
       local er     = ent.shape:getRadius()
       
+      local in_x, in_y = false, false
+
       if is_click then
 	 
-	 if x1 > ex - er and x1 < ex + er and
-	    y1 > ey - er and y1 < ey + er
-	 then
+	 if x1 > ex - er and x1 < ex + er then in_x = true end
+	 if y1 > ey - er and y1 < ey + er then in_y = true end
+
+	 if in_x and in_y then
 
 	    table.insert (new_selections, ent)
 	    break
@@ -71,8 +91,6 @@ function EntityManager:select (x, y)
 	 
       else
 	 
-	 local in_x, in_y = false, false
-
 	 if is_inverse.x then
 	    if ex > x2 and ex < x1 then in_x = true end
 	 else
@@ -89,10 +107,18 @@ function EntityManager:select (x, y)
 
       end
    end
-   
-   self.selection.active = false
 
    if #new_selections > 0 then
+      -- TODO: only units on screen (once camera movement exists)
+      -- TODO: only units of double_clicked type (once more entities exist)
+      if is_doubleclick then
+	 new_selections = {}
+	 
+	 for _, ent in pairs (self.entities) do
+	    table.insert (new_selections, ent)
+	 end
+      end
+      
       for _, ent in pairs (self.selected_entities) do
 	 ent.selected = false
       end

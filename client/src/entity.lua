@@ -4,8 +4,8 @@ local lp = love.physics
 local Entity = {
    id    = -1,
    --x, y  = 0, 0,
-   r     = 10,
-   speed = 20,
+   r     = 20,
+   speed = 15,
 
    move_vec = { x = 0, y = 0 },
    
@@ -32,17 +32,15 @@ end
 function Entity:draw ()
    -- current x y
    local cx, cy = self:get_coords()
+
+   if self.selected then
+      lg.setColor ({100, 255, 100, 120})
+      lg.circle ('fill', cx, cy, self.r +3)
+   end
    
    lg.setColor ({ 255, 255, 255, 255 })
    lg.circle ('fill', cx, cy, self.r)
 
-   if self.selected
-   then
-      lg.setColor ({100, 255, 100, 120})
-      lg.circle ('line', cx, cy, self.r +2)
-   end
-
-   lg.setColor ({ 255, 255, 255, 255 })
 end
 
 -- simple point a to point b movement
