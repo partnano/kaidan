@@ -35,8 +35,12 @@ function love.mousereleased (x, y, button)
    input_manager:mousereleased (x, y, button)
 end
 
+local test = false
 function love.keypressed (key, scancode, isrepeat)
    input_manager:keypressed (key, scancode, isrepeat)
+
+   -- DEBUG:
+   if key == 'f12' then test = not test end
 end
 
 function love.keyreleased (key, scancode)

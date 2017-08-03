@@ -81,10 +81,10 @@ while running do
    if data then
       rec_data = packer.to_table(data)
 
-      -- NOTE: debug
-      print("\n---- rec_data")
-      packer.print_table(rec_data)
-      print("---- \n")
+      -- DEBUG:
+      -- print("\n---- rec_data")
+      -- packer.print_table(rec_data)
+      -- print("---- \n")
 
       if rec_data.packet_type then	 
 	 if rec_data.packet_type == 'input' then
@@ -109,7 +109,9 @@ while running do
 	       and rec_data.client_id
 	    then
 	       players_to_ack[tonumber(rec_data.client_id)] = nil
-	       packer.print_table(players_to_ack)
+
+	       -- DEBUG:
+	       -- packer.print_table(players_to_ack)
 	    end
 
 	 end

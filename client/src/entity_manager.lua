@@ -120,7 +120,7 @@ function EntityManager:add_to_move_queue (selected_ids, x, y)
       end
    end
 
-   -- NOTE: debug
+   -- DEBUG:
    -- print ("-- UNITS TO MOVE:")
    -- packer.print_table (self.entities_to_move)
    -- print ("")
@@ -132,10 +132,11 @@ function EntityManager:move (ds, cs)
 
    -- ipairs for (deterministic) order
    for i, entity in ipairs (self.entities_to_move) do
-      -- NOTE: debug
-      print ("Moving unit " .. entity.ent.id, "on step " .. cs)
+      -- DEBUG:
+      -- print ("Moving unit " .. entity.ent.id, "on step " .. cs)
       
-      local goal_reached = entity.ent:move (entity.goal.x, entity.goal.y, entity.init)
+      local goal_reached = entity.ent:move (entity.goal.x, entity.goal.y,
+					    self.entities)
 
       entity.init = false
       

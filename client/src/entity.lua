@@ -47,28 +47,51 @@ end
 
 -- simple point a to point b movement
 -- returns boolean for if the goal is reached
-function Entity:move (gx, gy, init)
+function Entity:move (gx, gy, entities)
+
+   -- DEBUG:
+   print ("Moving entity: " .. self.id)
+   
+   -- flags to be used here
+   -- local move_x, move_y = false, false
+   -- local goal_reached = false
+   -- local coll_x, coll_y = false, false
    
    -- current x y
    local cx, cy = self:get_coords()
-   
-   if init then
-      self.move_vec = self:prep_move (gx, gy)
-      init = false
-   end
+
+   -- NOTE: future optimization: don't always do the prep vector?
+   self.move_vec = self:prep_move (gx, gy)
    
    local delta_x, delta_y = cx - gx, cy - gy
    local abs_delta_x, abs_delta_y = math.abs (delta_x), math.abs (delta_y)
 
    if abs_delta_x >= self.move_vec.x then
-      self.body:setX (cx + self.move_vec.x)
+      -- DEBUG:
+      print ("trying to move x")
+      
+      if self:check_collision (cx + self.move_vec.x, cy, entities) then
+
+	 print ("moving x")
+	 self.body:setX (cx + self.move_vec.x)
+
+      end
    end
 
    if abs_delta_y >= self.move_vec.y then
-      self.body:setY (cy + self.move_vec.y)
+
+      -- DEBUG:
+      print ("trying to move y")
+      
+      if self:check_collision (cx, cy + self.move_vec.y, entities) then
+
+	 print ("moving y")
+	 self.body:setY (cy + self.move_vec.y)
+	 
+      end
    end
 
-   if math.abs (cx - gx) < self.speed and math.abs (cy -gy) < self.speed then
+   if math.abs (cx - gx) < self.speed and math.abs (cy - gy) < self.speed then
       self.body:setX (gx)
       self.body:setY (gy)
 
@@ -93,6 +116,37 @@ function Entity:prep_move (gx, gy)
 
    return move_vec
    
+end
+
+-- NOTE:
+-- returns true on success -> no other unit in the way
+-- returns false on fail   -> another unit in the way
+function Entity:check_collision (gx, gy, entities)
+   for _, ent in pairs (entities) do
+
+      if ent.id == self.id then
+	 goto cont
+      end
+
+      local own_coll = self.shape:getRadius()
+      
+      local ex, ey = ent:get_coords()
+      local e_coll = ent.shape:getRadius()
+
+      if (gx + own_coll >= ex - e_coll and gx + own_coll <= ex + e_coll or
+	     gx - own_coll >= ex - e_coll and gx - own_coll <= ex + e_coll) and
+	 (gy + own_coll >= ey - e_coll and gy + own_coll <= ey + e_coll or
+	     gy - own_coll >= ey - e_coll and gy - own_coll <= ey + e_coll)
+      then
+
+	 return false
+
+      end
+
+      ::cont::
+   end
+
+   return true
 end
 
 function Entity:get_coords ()
