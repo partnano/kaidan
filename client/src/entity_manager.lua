@@ -28,7 +28,7 @@ function EntityManager:load ()
 end
 
 function EntityManager:spawn (x, y)
-   local new_ent = Entity:new (self.world, { id = self.id_counter, x = x, y = y })
+   local new_ent = Entity:new (self.world, { id = self.id_counter, _x = x, _y = y })
    table.insert (self.entities, new_ent)
 
    self.id_counter = self.id_counter +1
@@ -227,6 +227,10 @@ end
 
 function EntityManager:update (dt)
    self.world:update (dt)
+
+   for _, ent in pairs (self.entities) do
+      ent:move_interpolation (dt)
+   end
 end
 
 return EntityManager
