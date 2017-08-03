@@ -2,6 +2,7 @@ local lg = love.graphics
 local lm = love.mouse
 local lp = love.physics
 local lt = love.timer
+local lk = love.keyboard
 
 local Entity = require 'src.entity'
 
@@ -50,6 +51,8 @@ function EntityManager:select (x, y)
    if x2 < x1 then is_inverse.x = true end
    if y2 < y1 then is_inverse.y = true end
 
+   -- [ CLICK DETECTION ] --
+   
    -- detect if it was a click
    local is_click = false
    local x_diff = math.abs (x1 - x2)
@@ -57,6 +60,8 @@ function EntityManager:select (x, y)
 
    if x_diff < 5 and y_diff < 5 then is_click = true end
 
+   -- [ DOUBLECLICK DETECTION ] --
+   
    local is_doubleclick = false
 
    if is_click then
@@ -67,6 +72,10 @@ function EntityManager:select (x, y)
       if time_diff < 250 then is_doubleclick = true end
       self.last_click = time_now
    end
+
+   if is_click and lk.isDown('lctrl') then is_doubleclick = true end
+
+   -- [ SELECTION ] --
    
    local new_selections = {}
    
