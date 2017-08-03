@@ -68,7 +68,7 @@ function Entity:move (gx, gy, entities)
 
    if abs_delta_x >= self.move_vec.x then
       -- DEBUG:
-      print ("trying to move x")
+      -- print ("trying to move x")
       
       if self:check_collision (cx + self.move_vec.x, cy, entities) then
 
@@ -81,21 +81,24 @@ function Entity:move (gx, gy, entities)
    if abs_delta_y >= self.move_vec.y then
 
       -- DEBUG:
-      print ("trying to move y")
+      --print ("trying to move y")
       
       if self:check_collision (cx, cy + self.move_vec.y, entities) then
 
-	 print ("moving y")
+	 --print ("moving y")
 	 self.body:setY (cy + self.move_vec.y)
 	 
       end
    end
 
    if math.abs (cx - gx) < self.speed and math.abs (cy - gy) < self.speed then
-      self.body:setX (gx)
-      self.body:setY (gy)
+      if self:check_collision (gx, gy, entities) then
+	 
+	 self.body:setX (gx)
+	 self.body:setY (gy)
 
-      return true
+	 return true
+      end
    end
    
    return false -- still moving
@@ -133,10 +136,10 @@ function Entity:check_collision (gx, gy, entities)
       local ex, ey = ent:get_coords()
       local e_coll = ent.shape:getRadius()
 
-      if (gx + own_coll >= ex - e_coll and gx + own_coll <= ex + e_coll or
-	     gx - own_coll >= ex - e_coll and gx - own_coll <= ex + e_coll) and
-	 (gy + own_coll >= ey - e_coll and gy + own_coll <= ey + e_coll or
-	     gy - own_coll >= ey - e_coll and gy - own_coll <= ey + e_coll)
+      if ((gx + own_coll >= ex - e_coll and gx + own_coll <= ex + e_coll) or
+	    (gx - own_coll >= ex - e_coll and gx - own_coll <= ex + e_coll)) and
+	 ((gy + own_coll >= ey - e_coll and gy + own_coll <= ey + e_coll or
+	     gy - own_coll >= ey - e_coll and gy - own_coll <= ey + e_coll))
       then
 
 	 return false

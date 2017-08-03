@@ -48,13 +48,15 @@ function love.keyreleased (key, scancode)
 end
 
 function love.update (dt)
-
+   
    -- update elapsed time
    network_manager:update_time()
 
    -- exec actions
    action_manager:update()   
 
+   entity_manager:update (dt)
+   
    -- send stuff
    network_manager:update_server()
 

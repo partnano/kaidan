@@ -169,4 +169,8 @@ function EntityManager:draw ()
    end
 end
 
+function EntityManager:update (dt)
+   self.world:update (dt)
+end
+
 return EntityManager
