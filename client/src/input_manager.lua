@@ -76,6 +76,10 @@ function InputManager:keypressed (key, scancode, isrepeat)
 
 	 --finish up
 	 self.serial_counter = self.serial_counter +1
+
+      elseif key == 'escape' then
+	 self.network_manager:quit()
+
       end
       
    end

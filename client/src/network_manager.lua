@@ -57,6 +57,13 @@ function NetworkManager:update_server ()
    end
 end
 
+function NetworkManager:quit ()
+
+   local msg = packer.to_string ({ packet_type = 'quit' })
+   self.conn:send (msg)
+   
+end
+
 function NetworkManager:receive ()
 
    repeat
@@ -74,27 +81,34 @@ function NetworkManager:receive ()
 	    self.start_time   = self.socket.gettime()
 	    self.elapsed_time = 0
 
-	    local _id = tonumber (rec_data.id)
+	    local id = tonumber (rec_data.id)
 
-	    if _id then
-	       client_id = _id
+	    if id then
+	       client_id = id
 	       print ("Successfully authenticated, start time: " .. self.start_time,
 		      "id: " .. client_id)
+
+	       local msg = { packet_type = 'ack',
+			     ack_type    = 'auth',
+			     client_id   = client_id }
+
+	       self.conn:send (packer.to_string (msg))
+	       
 	    else
 	       error ("Authentication id faulty!")
 	    end
             
 	 elseif rec_data.cmd == 'ack' then
 
-	    local _s = tonumber (rec_data.serial)
-	    if _s then self.input_manager:remove_input_to_send (_s) end
+	    local s = tonumber (rec_data.serial)
+	    if s then self.input_manager:remove_input_to_send (s) end
 
 	 elseif rec_data.cmd == 'step' then
 
 	    local old_step = self.current_step
 	    
-	    local _t = tonumber(rec_data.step)
-	    if _t then self.current_step = _t end
+	    local t = tonumber(rec_data.step)
+	    if t then self.current_step = t end
 
 	    print ("- Step " .. self.current_step .. " -\n")
 	    
@@ -115,16 +129,21 @@ function NetworkManager:receive ()
 	       print("-- END RECEIVED ACTIONS\n")
 	       -- NOTE: debug end
 
-	       local _answer = {packet_type = 'ack',
-				serial      = rec_data.serial,
-				client_id   = client_id}
+	       local msg = { packet_type = 'ack',
+			     ack_type    = 'actions',
+			     serial      = rec_data.serial,
+			     client_id   = client_id }
 	       
-	       self.conn:send(packer.to_string(_answer))
+	       self.conn:send (packer.to_string (msg))
 
-	       for _, input in pairs(rec_data.inputs) do
-		  table.insert(self.action_manager.actions, input)
+	       for _, input in pairs (rec_data.inputs) do
+		  table.insert (self.action_manager.actions, input)
 	       end
 	    end
+
+	 elseif rec_data.cmd == 'quit' then
+	    love.event.quit()
+	    
 	 else
 	    print("Unknown command: ", data.cmd)
 	 end

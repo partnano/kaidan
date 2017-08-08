@@ -13,6 +13,8 @@ end
 
 -- NOTE: shallow
 function packer.table_size (t)
+   if t == nil then return 0 end
+
    local c = 0
 
    for _, _ in pairs(t) do
