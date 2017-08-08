@@ -58,13 +58,12 @@ function NetworkManager:update_server ()
 end
 
 function NetworkManager:receive ()
-   local data, msg = nil, nil
 
    repeat
-      data, msg = self.conn:receive()
+      local data, msg = self.conn:receive()
 
       if data then
-	 rec_data = packer.to_table(data)
+	 rec_data = packer.to_table (data)
 
 	 -- NOTE: debug
 	 -- print("\n---- rec_data")
@@ -72,23 +71,23 @@ function NetworkManager:receive ()
 	 -- print("---- \n")
 	 
 	 if rec_data.cmd == 'auth' then
-	    self.start_time = self.socket.gettime()
+	    self.start_time   = self.socket.gettime()
 	    self.elapsed_time = 0
 
-	    local _id = tonumber(rec_data.id)
+	    local _id = tonumber (rec_data.id)
 
 	    if _id then
 	       client_id = _id
-	       print ("authenticated, start time: " .. self.start_time,
+	       print ("Successfully authenticated, start time: " .. self.start_time,
 		      "id: " .. client_id)
 	    else
-	       error ("received auth id faulty!")
+	       error ("Authentication id faulty!")
 	    end
             
 	 elseif rec_data.cmd == 'ack' then
 
-	    local _s = tonumber(rec_data.serial)
-	    if _s then self.input_manager:remove_input_to_send(_s) end
+	    local _s = tonumber (rec_data.serial)
+	    if _s then self.input_manager:remove_input_to_send (_s) end
 
 	 elseif rec_data.cmd == 'step' then
 
@@ -117,8 +116,8 @@ function NetworkManager:receive ()
 	       -- NOTE: debug end
 
 	       local _answer = {packet_type = 'ack',
-				serial = rec_data.serial,
-				client_id = client_id}
+				serial      = rec_data.serial,
+				client_id   = client_id}
 	       
 	       self.conn:send(packer.to_string(_answer))
 
