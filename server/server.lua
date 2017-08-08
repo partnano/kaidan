@@ -6,12 +6,14 @@ local conn = socket.udp()
 local players = {}
 local player_index = 0
 
-local required_players = 1
+local REQUIRED_PLAYERS = 1
+local required_players = REQUIRED_PLAYERS
 local auth_sent        = false
 local auth_acks        = nil
 
 local update_rate   = 0.1
 local last_steptime = nil
+local elapsed_time  = nil
 local current_step  = nil
 
 local players_to_ack  = nil
@@ -71,11 +73,14 @@ function update_clients ()
    -- only continue counting steps if all players acknowledged last input
    if current_step and packer.table_size (players_to_ack) then
       local current_steptime = socket.gettime()
+      local dt_steptime = current_steptime - last_steptime
+      elapsed_time = elapsed_time + dt_steptime
 
       for _, player in pairs (players) do
-	 local msg = packer.to_string ({ cmd  = "step",
-					 step = current_step,
-					 dt   = last_steptime - current_steptime })
+	 local msg = packer.to_string ({ cmd     = "step",
+					 step    = current_step,
+					 dt      = dt_steptime,
+					 elapsed = elapsed_time })
 	 
 	 conn:sendto (msg, player.ip, player.port)
       end
@@ -115,7 +120,7 @@ function reset ()
    players = {}
    player_index = 0
 
-   required_players = 1
+   required_players = REQUIRED_PLAYERS
    auth_sent        = false
    auth_acks        = nil
 
@@ -170,7 +175,7 @@ function main ()
 
       if required_players == 0 and not auth_sent then
 
-	 last_steptime = socket.gettime()
+	 last_steptime, elapsed_time = socket.gettime(), 0
 	 current_step  = 0
 
 	 auth_acks = packer.copy (players)

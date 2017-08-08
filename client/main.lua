@@ -49,25 +49,24 @@ end
 
 function love.update (dt)
    
-   -- update elapsed time
-   network_manager:update_time()
-
    -- exec actions
    action_manager:update()   
-
-   entity_manager:update (dt)
-   
+      
    -- send stuff
    network_manager:update_server()
 
    -- receive stuff
    network_manager:receive()
+
+   -- update entities
+   entity_manager:update (dt)
    
 end
 
 function love.draw () 
-   lg.print ("FPS: " .. lt.getFPS(), 10, 10)
+   lg.print ("FPS: "  .. lt.getFPS(), 10, 10)
    lg.print ("Step: " .. network_manager.current_step, 10, 22)
+   lg.print ("Time: " .. network_manager.elapsed_time, 10, 34)
 
    entity_manager:draw()
 end

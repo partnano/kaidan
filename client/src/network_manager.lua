@@ -9,8 +9,8 @@ local NetworkManager = {
    port = 11111,
 
    updaterate = 0.1,
-   start_time = nil,
-   elapsed_time = nil,
+   elapsed_time = 0,
+   step_dt      = 0,
    current_step = 0,
 
    last_update_time = nil
@@ -18,20 +18,13 @@ local NetworkManager = {
 
 function NetworkManager:load ()
    self.conn = socket.udp()
+   
    self.conn:settimeout(0)
-   self.conn:setpeername(self.address, self.port)
+   self.conn:setpeername (self.address, self.port)
 
-   self.conn:send("auth")
+   self.conn:send ("auth")
 
    self.last_update_time = self.socket.gettime()
-end
-
-function NetworkManager:update_time ()
-   -- elapsed time is for input / action management
-   if self.start_time then
-      self.elapsed_time = self.socket.gettime() - self.start_time
-   end
-
 end
 
 function NetworkManager:update_server ()
@@ -71,22 +64,13 @@ function NetworkManager:receive ()
 
       if data then
 	 rec_data = packer.to_table (data)
-
-	 -- NOTE: debug
-	 -- print("\n---- rec_data")
-	 -- packer.print_table(rec_data)
-	 -- print("---- \n")
 	 
 	 if rec_data.cmd == 'auth' then
-	    self.start_time   = self.socket.gettime()
-	    self.elapsed_time = 0
-
 	    local id = tonumber (rec_data.id)
 
 	    if id then
 	       client_id = id
-	       print ("Successfully authenticated, start time: " .. self.start_time,
-		      "id: " .. client_id)
+	       print ("Successfully authenticated with id: " .. client_id)
 
 	       local msg = { packet_type = 'ack',
 			     ack_type    = 'auth',
@@ -99,35 +83,42 @@ function NetworkManager:receive ()
 	    end
             
 	 elseif rec_data.cmd == 'ack' then
-
-	    local s = tonumber (rec_data.serial)
-	    if s then self.input_manager:remove_input_to_send (s) end
+	    local serial = tonumber (rec_data.serial)
+	    if serial then self.input_manager:remove_input_to_send (serial) end
 
 	 elseif rec_data.cmd == 'step' then
-
 	    local old_step = self.current_step
 	    
-	    local t = tonumber(rec_data.step)
-	    if t then self.current_step = t end
+	    local step    = tonumber (rec_data.step)
+	    local elapsed = tonumber (rec_data.elapsed)
+	    local dt      = tonumber (rec_data.dt)
 
-	    print ("- Step " .. self.current_step .. " -\n")
-	    
+	    if step and elapsed and dt then
+	       self.current_step = step
+	       self.elapsed_time = elapsed
+	       self.step_dt      = dt
+	    end
+
+	    -- DEBUG:
+	    -- print ("- Step " .. self.current_step .. " / Elapsed: "
+	    -- 	      .. self.elapsed_time .. "s / dt: " .. self.step_dt .. " -\n")
+
+	    -- NOTE: actionmanager takes delta step
 	    self.action_manager:step (self.current_step - old_step)
 	    
 	 elseif rec_data.cmd == 'actions' then
 	    
 	    if rec_data.inputs and rec_data.serial then
 
-	       -- NOTE: debug
+	       -- DEBUG:
 	       print("-- BEGIN RECEIVED ACTIONS")
 	       for id, input in pairs(rec_data.inputs) do
-		  print("Client " .. input.client_id,
-			"#" .. input.serial,
-			"Supposed Step: " .. input.exec_step,
-			"Command: " .. input.cmd)
+	       	  print("Client " .. input.client_id,
+	       		"#" .. input.serial,
+	       		"Supposed Step: " .. input.exec_step,
+	       		"Command: " .. input.cmd)
 	       end
 	       print("-- END RECEIVED ACTIONS\n")
-	       -- NOTE: debug end
 
 	       local msg = { packet_type = 'ack',
 			     ack_type    = 'actions',
@@ -145,11 +136,11 @@ function NetworkManager:receive ()
 	    love.event.quit()
 	    
 	 else
-	    print("Unknown command: ", data.cmd)
+	    print ("Unknown command: ", data.cmd)
 	 end
 
       elseif msg ~= 'timeout' then
-	 error("Network error: " .. tostring(msg))
+	 error ("Network error: ", tostring (msg))
       end
 
       ::cont::

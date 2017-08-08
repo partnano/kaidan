@@ -87,7 +87,7 @@ end
 function Entity:move (gx, gy, entities)
 
    -- DEBUG:
-   print ("Moving entity: " .. self.id)
+   -- print ("Moving entity: " .. self.id)
    
    -- current x y
    local cx, cy = self:get_coords()

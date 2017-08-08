@@ -40,7 +40,7 @@ function ActionManager:step (ds)
    table.sort (self.actions_this_step, comp_serial)
 
    -- EXECUTING ACTIONS
-   -- NOTE: debug
+   -- DEBUG:
    if #self.actions_this_step > 0 then print("-- BEGIN EXEC ACTION") end
    for id, action in ipairs(self.actions_this_step) do
 
@@ -69,7 +69,7 @@ function ActionManager:step (ds)
       end
       
    end
-   -- NOTE: debug
+   -- DEBUG:
    if #self.actions_this_step > 0 then print("-- END EXEC ACTION\n") end
 
    self.actions_this_step = {}
