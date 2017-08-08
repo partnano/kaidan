@@ -225,11 +225,11 @@ function EntityManager:draw ()
    end
 end
 
-function EntityManager:update (dt)
+function EntityManager:update (dt, dts)
    self.world:update (dt)
 
    for _, ent in pairs (self.entities) do
-      ent:move_interpolation (dt)
+      ent:move_interpolation (dt, dts)
    end
 end
 

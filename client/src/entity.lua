@@ -58,21 +58,21 @@ function Entity:draw ()
 
 end
 
-function Entity:move_interpolation (dt)
+function Entity:move_interpolation (dt, dts)
    
-   local gx, gy   = self:get_coords()
+   local gx, gy = self:get_coords()
 
    if gx ~= self.rend_x or gy ~= self.rend_y then
 
       local move_vec = self:prep_move (self.rend_x, self.rend_y, gx, gy)
 
-      self.rend_x = self.rend_x + (move_vec.x * self.speed * dt)
-      self.rend_y = self.rend_y + (move_vec.y * self.speed * dt)
+      self.rend_x = self.rend_x + (move_vec.x * self.speed * dt/2)
+      self.rend_y = self.rend_y + (move_vec.y * self.speed * dt/2)
       
       local delta_x, delta_y = self.rend_x - gx, self.rend_y - gy
       local abs_delta_x, abs_delta_y = math.abs (delta_x), math.abs (delta_y)
       
-      local jump_dist = 10
+      local jump_dist = 5
 
       if abs_delta_x <= jump_dist and abs_delta_y <= jump_dist then
 	 self.rend_x = gx

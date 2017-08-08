@@ -59,7 +59,7 @@ function love.update (dt)
    network_manager:receive()
 
    -- update entities
-   entity_manager:update (dt)
+   entity_manager:update (dt, network_manager.step_dt)
    
 end
 
