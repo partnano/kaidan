@@ -4,6 +4,5 @@ This is a RTS engine / game in it's absolute infancy. This project started becau
 
 Much to do!
 
-- libs/ is currently only a soft link in the directories -> bad
 - useful build / run system for the project
 - etc.
