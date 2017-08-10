@@ -1,4 +1,4 @@
-# MINZOKU
+# Kaidan
 
 This is a RTS engine / game in it's absolute infancy. This project started because of my interest for the lockstep strategy and how it worked in implementation.
 
