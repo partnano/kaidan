@@ -9,6 +9,7 @@ packer = require 'libs.packer'
 
 -- handlers - public, intended to be used by the whole program
 Handlers = {
+   Config      = require 'src.handlers.Config',
    Input       = require 'src.handlers.Input',
    Action      = require 'src.handlers.Action',
    Network     = require 'src.handlers.Network',
@@ -16,6 +17,7 @@ Handlers = {
 }
 
 function love.load ()
+   Handlers.Config:load()
    Handlers.Simulation:load()
    Handlers.Network:load()
 end
@@ -41,6 +43,8 @@ function love.keyreleased (key, scancode)
 end
 
 function love.update (dt)
+
+   Handlers.Input:update(dt)
    
    -- exec actions
    Handlers.Action:update()   
